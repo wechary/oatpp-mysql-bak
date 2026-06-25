@@ -128,7 +128,7 @@ void Serializer::serializeString(const Serializer* _this, MYSQL_STMT* stmt, v_ui
 
     OATPP_LOGD("Serializer::serializeString()", "value='%s'", buff->c_str());
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
     OATPP_LOGD("Serializer::serializeString()", "null");
   }
@@ -148,7 +148,7 @@ void Serializer::serializeInt8(const Serializer* _this, MYSQL_STMT* stmt, v_uint
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -167,7 +167,7 @@ void Serializer::serializeUInt8(const Serializer* _this, MYSQL_STMT* stmt, v_uin
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -186,7 +186,7 @@ void Serializer::serializeInt16(const Serializer* _this, MYSQL_STMT* stmt, v_uin
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -205,7 +205,7 @@ void Serializer::serializeUInt16(const Serializer* _this, MYSQL_STMT* stmt, v_ui
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -224,7 +224,7 @@ void Serializer::serializeInt32(const Serializer* _this, MYSQL_STMT* stmt, v_uin
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -243,7 +243,7 @@ void Serializer::serializeUInt32(const Serializer* _this, MYSQL_STMT* stmt, v_ui
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -262,7 +262,7 @@ void Serializer::serializeInt64(const Serializer* _this, MYSQL_STMT* stmt, v_uin
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -281,7 +281,7 @@ void Serializer::serializeUInt64(const Serializer* _this, MYSQL_STMT* stmt, v_ui
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -300,7 +300,7 @@ void Serializer::serializeFloat32(const Serializer* _this, MYSQL_STMT* stmt, v_u
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 
@@ -319,7 +319,7 @@ void Serializer::serializeFloat64(const Serializer* _this, MYSQL_STMT* stmt, v_u
     bindParam.buffer_length = 0;
     bindParam.is_null = 0;
   } else {
-    bindParam.is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+    bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
     *bindParam.is_null = 1;
   }
 

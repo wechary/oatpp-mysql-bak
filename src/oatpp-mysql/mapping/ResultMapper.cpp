@@ -83,7 +83,7 @@ void ResultMapper::ResultData::bindResultsForCache() {
       bind.buffer_type = fields[i].type;
 
       // indicate through is_null pointer if the value is null
-      my_bool* is_null = static_cast<my_bool*>(malloc(sizeof(my_bool)));
+      bool* is_null = static_cast<bool*>(malloc(sizeof(bool)));
       bind.is_null = is_null;
 
       if (fields[i].type == MYSQL_TYPE_TINY) {

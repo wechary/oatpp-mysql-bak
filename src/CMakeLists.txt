@@ -20,7 +20,7 @@ set(OATPP_THIS_MODULE_SOURCES
         oatpp-mysql/orm.hpp
 )
 
-add_library(${OATPP_THIS_MODULE_NAME} SHARED ${OATPP_THIS_MODULE_SOURCES})
+add_library(${OATPP_THIS_MODULE_NAME} STATIC ${OATPP_THIS_MODULE_SOURCES})
 
 set_target_properties(${OATPP_THIS_MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -38,26 +38,27 @@ target_include_directories(${OATPP_THIS_MODULE_NAME}
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 
-# find_path(MYSQL_INCLUDE_DIR mysql/mysql.h)
-find_path(MYSQL_INCLUDE_DIR mysql/mysql.h /www/server/mysql/include /usr/include /usr/local/include)
-if(NOT MYSQL_INCLUDE_DIR OR MYSQL_INCLUDE_DIR STREQUAL "MYSQL_INCLUDE_DIR-NOTFOUND")
-    unset(MYSQL_INCLUDE_DIR CACHE)
-    find_program(MYSQL_CONFIG mysql_config)
-    if(MYSQL_CONFIG)
-        execute_process(COMMAND ${MYSQL_CONFIG} --cflags
-                        OUTPUT_VARIABLE MYSQL_CFLAGS
-                        OUTPUT_STRIP_TRAILING_WHITESPACE)
-        string(REGEX MATCHALL "-I[^ ]+" MYSQL_INCLUDE_DIRS "${MYSQL_CFLAGS}")
-        list(GET MYSQL_INCLUDE_DIRS 0 MYSQL_INCLUDE_DIR_OPTION)
-        string(REGEX REPLACE "^-I" "" MYSQL_INCLUDE_DIR "${MYSQL_INCLUDE_DIR_OPTION}")
+# find_package(mysql REQUIRED)
+if(NOT mysql_DIR AND NOT DEFINED ENV{mysql_DIR})
+    # 手动设置路径
+    set(MYSQL_INCLUDE_DIR "/www/server/mysql/include")
+    set(MYSQL_LIBRARY "/www/server/mysql/lib/libmysqlclient.so")
+    
+    add_library(mysqlclient UNKNOWN IMPORTED)
+    set_target_properties(mysqlclient PROPERTIES
+        IMPORTED_LOCATION "${MYSQL_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${MYSQL_INCLUDE_DIR}"
+    )
+else()
+    find_package(mysql REQUIRED)
+    if(NOT TARGET mysqlclient)
+        add_library(mysqlclient UNKNOWN IMPORTED)
+        set_target_properties(mysqlclient PROPERTIES
+            IMPORTED_LOCATION "${MYSQL_LIBRARIES}"
+            INTERFACE_INCLUDE_DIRECTORIES "${MYSQL_INCLUDE_DIRS}"
+        )
     endif()
 endif()
-
-if(NOT MYSQL_INCLUDE_DIR OR MYSQL_INCLUDE_DIR STREQUAL "MYSQL_INCLUDE_DIR-NOTFOUND")
-    message(FATAL_ERROR "MySQL header mysql/mysql.h not found. Install MySQL client development headers or set MYSQL_INCLUDE_DIR.")
-endif()
-
-target_include_directories(${OATPP_THIS_MODULE_NAME} PRIVATE ${MYSQL_INCLUDE_DIR})
 
 target_link_libraries(${OATPP_THIS_MODULE_NAME} PRIVATE mysqlclient)
 
