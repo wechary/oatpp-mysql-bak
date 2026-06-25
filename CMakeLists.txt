@@ -20,12 +20,13 @@ project(${OATPP_THIS_MODULE_NAME}
 )
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-option(OATPP_DIR_SRC "Path to oatpp module directory (sources)")
-option(OATPP_DIR_LIB "Path to directory with liboatpp (directory containing ex: liboatpp.so or liboatpp.dynlib)")
+set(OATPP_DIR_SRC "" CACHE PATH "Path to oatpp module directory (sources)")
+set(OATPP_DIR_LIB "" CACHE PATH "Path to directory with liboatpp (directory containing ex: liboatpp.so or liboatpp.dynlib)")
 option(OATPP_MYSQL_BUILD_TESTS "Build tests for this module" ON)
 option(OATPP_INSTALL "Install module binaries" ON)
 
-set(OATPP_MODULES_LOCATION "CUSTOM" CACHE STRING "Location where to find oatpp modules. can be [INSTALLED|EXTERNAL|CUSTOM]")
+set(OATPP_MODULES_LOCATION "INSTALLED" CACHE STRING "Location where to find oatpp modules. can be [INSTALLED|EXTERNAL|CUSTOM]")
+set_property(CACHE OATPP_MODULES_LOCATION PROPERTY STRINGS INSTALLED EXTERNAL CUSTOM)
 
 ###################################################################################################
 ## get oatpp main module in specified location
