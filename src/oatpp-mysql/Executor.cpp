@@ -175,14 +175,14 @@ std::shared_ptr<orm::QueryResult> Executor::commit(const provider::ResourceHandl
 }
 
 std::shared_ptr<orm::QueryResult> Executor::rollback(const provider::ResourceHandle<orm::Connection>& connection) {
-  throw std::runtime_error("[oatpp::sqlite::Executor::rollback()]: "
+  throw std::runtime_error("[oatpp::mysql::Executor::rollback()]: "
                            "Error. Not implemented.");
 }
 
 v_int64 Executor::getSchemaVersion(const oatpp::String& suffix,
                                    const provider::ResourceHandle<orm::Connection>& connection)
 {
-  throw std::runtime_error("[oatpp::sqlite::Executor::getSchemaVersion()]: "
+  throw std::runtime_error("[oatpp::mysql::Executor::getSchemaVersion()]: "
                            "Error. Not implemented.");
 }
 
@@ -191,7 +191,7 @@ void Executor::migrateSchema(const oatpp::String& script,
                              const oatpp::String& suffix,
                              const provider::ResourceHandle<orm::Connection>& connection)
 {
-  throw std::runtime_error("[oatpp::sqlite::Executor::migrateSchema()]: "
+  throw std::runtime_error("[oatpp::mysql::Executor::migrateSchema()]: "
                            "Error. Not implemented.");
 }
 

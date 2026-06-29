@@ -125,6 +125,23 @@ void ResultMapper::ResultData::bindResultsForCache() {
         bind.buffer = p_string;
         bind.buffer_length = fields[i].length + 1;
       }
+      else if (fields[i].type == MYSQL_TYPE_JSON ||
+              fields[i].type == MYSQL_TYPE_BLOB ||
+              fields[i].type == MYSQL_TYPE_TINY_BLOB ||
+              fields[i].type == MYSQL_TYPE_MEDIUM_BLOB ||
+              fields[i].type == MYSQL_TYPE_LONG_BLOB) {
+          
+          // 使用固定大小的缓冲区，避免 fields[i].length 过大
+          const size_t FIXED_BUF_SIZE = 4096;  // 4KB 初始缓冲区
+          auto p_string = static_cast<char*>(malloc(FIXED_BUF_SIZE));
+          if (!p_string) {
+              throw std::runtime_error("[oatpp::mysql::mapping::ResultMapper::ResultData::ResultData()]: "
+                "Failed to allocate memory for blob field: " +  std::string(fields[i].name));
+          }
+          bind.buffer_type = MYSQL_TYPE_STRING;
+          bind.buffer = p_string;
+          bind.buffer_length = FIXED_BUF_SIZE;
+      }
       else {
         throw std::runtime_error("[oatpp::mysql::mapping::ResultMapper::ResultData::ResultData()]: Unknown field type: " 
           + std::string(fields[i].name) + " - " + std::to_string(fields[i].type));
@@ -210,7 +227,7 @@ oatpp::Void ResultMapper::readOneRowAsMap(ResultMapper* _this, ResultData* dbDat
 
   const Type* keyType = dispatcher->getKeyType();
   if(keyType->classId.id != oatpp::data::mapping::type::__class::String::CLASS_ID.id){
-    throw std::runtime_error("[oatpp::sqlite::mapping::ResultMapper::readOneRowAsMap()]: Invalid map key. Key should be String");
+    throw std::runtime_error("[oatpp::mysql::mapping::ResultMapper::readOneRowAsMap()]: Invalid map key. Key should be String");
   }
 
   const Type* valueType = dispatcher->getValueType();
@@ -247,10 +264,10 @@ oatpp::Void ResultMapper::readOneRowAsObject(ResultMapper* _this, ResultData* db
                    _this->m_deserializer.deserialize(inData, field->type));
       }
     } else {
-      OATPP_LOGE("[oatpp::sqlite::mapping::ResultMapper::readOneRowAsObject]",
+      OATPP_LOGE("[oatpp::mysql::mapping::ResultMapper::readOneRowAsObject]",
                  "Error. The object of type '%s' has no field to map column '%s'.",
                  type->nameQualifier, dbData->colNames[i]->c_str());
-      throw std::runtime_error("[oatpp::sqlite::mapping::ResultMapper::readOneRowAsObject]: Error. "
+      throw std::runtime_error("[oatpp::mysql::mapping::ResultMapper::readOneRowAsObject]: Error. "
                                "The object of type " + std::string(type->nameQualifier) +
                                " has no field to map column " + *dbData->colNames[i]  + ".");
     }
@@ -316,7 +333,7 @@ oatpp::Void ResultMapper::readOneRow(ResultData* dbData, const Type* type) {
     return interpretation->fromInterpretation(readOneRow(dbData, interpretation->getInterpretationType()));
   }
 
-  throw std::runtime_error("[oatpp::sqlite::mapping::ResultMapper::readOneRow()]: "
+  throw std::runtime_error("[oatpp::mysql::mapping::ResultMapper::readOneRow()]: "
                            "Error. Invalid result container type. "
                            "Allowed types are "
                            "oatpp::Vector, "
@@ -339,7 +356,7 @@ oatpp::Void ResultMapper::readRows(ResultData* dbData, const Type* type, v_int64
     return (*method)(this, dbData, type, count);
   }
 
-  throw std::runtime_error("[oatpp::sqlite::mapping::ResultMapper::readRows()]: "
+  throw std::runtime_error("[oatpp::mysql::mapping::ResultMapper::readRows()]: "
                            "Error. Invalid result container type. "
                            "Allowed types are oatpp::Vector, oatpp::List, oatpp::UnorderedSet");
 

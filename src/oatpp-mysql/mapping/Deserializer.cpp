@@ -69,7 +69,7 @@ oatpp::Void Deserializer::deserialize(const InData& data, const Type* type) cons
     return interpretation->fromInterpretation(deserialize(data, interpretation->getInterpretationType()));
   }
 
-  throw std::runtime_error("[oatpp::sqlite::mapping::Deserializer::deserialize()]: "
+  throw std::runtime_error("[oatpp::mysql::mapping::Deserializer::deserialize()]: "
                            "Error. No deserialize method for type '" + std::string(type->classId.name) + "'");
 
 }
@@ -100,7 +100,7 @@ v_int64 Deserializer::deInt(const InData& data) {
     }
   }
 
-  throw std::runtime_error("[oatpp::sqlite::mapping::Deserializer::deInt()]: Error. Unknown OID.");
+  throw std::runtime_error("[oatpp::mysql::mapping::Deserializer::deInt()]: Error. Unknown OID.");
 }
 
 oatpp::Void Deserializer::deserializeString(const Deserializer* _this, const InData& data, const Type* type)
@@ -148,7 +148,7 @@ oatpp::Void Deserializer::deserializeFloat32(const Deserializer* _this, const In
     }
   }
 
-  throw std::runtime_error("[oatpp::sqlite::mapping::Deserializer::deserializeFloat32()]: Error. Unknown OID.");
+  throw std::runtime_error("[oatpp::mysql::mapping::Deserializer::deserializeFloat32()]: Error. Unknown OID.");
 
 }
 
@@ -172,7 +172,7 @@ oatpp::Void Deserializer::deserializeFloat64(const Deserializer* _this, const In
     }
   }
 
-  throw std::runtime_error("[oatpp::sqlite::mapping::Deserializer::deserializeFloat64()]: Error. Unknown OID.");
+  throw std::runtime_error("[oatpp::mysql::mapping::Deserializer::deserializeFloat64()]: Error. Unknown OID.");
 
 }
 
@@ -209,7 +209,7 @@ oatpp::Void Deserializer::deserializeAny(const Deserializer* _this, const InData
       valueType = oatpp::String::Class::getType();
       break;
     default:
-      throw std::runtime_error("[oatpp::sqlite::mapping::Deserializer::deserializeAny()]: Error. Unknown OID.");
+      throw std::runtime_error("[oatpp::mysql::mapping::Deserializer::deserializeAny()]: Error. Unknown OID.");
   }
 
   auto value = _this->deserialize(data, valueType);
@@ -235,10 +235,10 @@ oatpp::Void Deserializer::deserializeEnum(const Deserializer* _this, const InDat
 
   switch(e) {
     case data::mapping::type::EnumInterpreterError::CONSTRAINT_NOT_NULL:
-      throw std::runtime_error("[oatpp::sqlite::mapping::Deserializer::deserializeEnum()]: Error. Enum constraint violated - 'NotNull'.");
+      throw std::runtime_error("[oatpp::mysql::mapping::Deserializer::deserializeEnum()]: Error. Enum constraint violated - 'NotNull'.");
 
     default:
-      throw std::runtime_error("[oatpp::sqlite::mapping::Deserializer::deserializeEnum()]: Error. Can't deserialize Enum.");
+      throw std::runtime_error("[oatpp::mysql::mapping::Deserializer::deserializeEnum()]: Error. Can't deserialize Enum.");
   }
 
 }

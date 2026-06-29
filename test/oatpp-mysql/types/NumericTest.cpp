@@ -58,11 +58,11 @@ public:
 
 void NumericTest::onRun() {
   oatpp::mysql::ConnectionOptions options;
-  options.host = "172.17.0.3";
+  options.host = "127.0.0.1";
   options.port = 3306;
-  options.username = "root";
-  options.password = "root";
-  options.database = "test";
+  options.username = "admin";
+  options.password = "123456";
+  options.database = "my_test";
 
   OATPP_LOGD(TAG, "Connect to database '%s' on '%s:%d'", options.database->c_str(), options.host->c_str(), options.port);
 
