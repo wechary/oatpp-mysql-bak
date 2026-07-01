@@ -52,9 +52,19 @@ public:
     oatpp::String preparedTemplate;
 
     /**
+     * Original template text before placeholder substitution.
+     */
+    oatpp::String templateText;
+
+    /**
      * Use prepared statement for this query.
      */
     bool prepare;
+
+    /**
+     * Number of generated placeholders in preparedTemplate.
+     */
+    v_uint32 placeholderCount;
   };
 
 private:

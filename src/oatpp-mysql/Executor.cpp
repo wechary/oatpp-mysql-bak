@@ -3,6 +3,72 @@
 #include "ql_template/Parser.hpp"
 #include "ql_template/TemplateValueProvider.hpp"
 
+#include "oatpp/core/data/mapping/type/Collection.hpp"
+#include "oatpp/core/data/mapping/type/Vector.hpp"
+
+namespace {
+
+oatpp::String buildPreparedTemplate(const oatpp::orm::Executor::StringTemplate& queryTemplate,
+                                    const std::unordered_map<oatpp::String, oatpp::Void>& params,
+                                    const std::shared_ptr<const oatpp::data::mapping::TypeResolver>& typeResolver) {
+  oatpp::data::mapping::TypeResolver::Cache cache;
+  auto extra = std::static_pointer_cast<oatpp::mysql::ql_template::Parser::TemplateExtra>(queryTemplate.getExtraData());
+
+  auto result = std::make_shared<std::string>();
+  auto currentPos = 0u;
+  const auto& variables = queryTemplate.getTemplateVariables();
+
+  for (const auto& var : variables) {
+    result->append(extra->templateText->substr(currentPos, var.posStart - currentPos));
+    currentPos = var.posStart + var.name->size() + 1;
+
+    auto parser = oatpp::parser::Caret(var.name);
+    auto nameLabel = parser.putLabel();
+    std::vector<std::string> propertyPath;
+    if(parser.findChar('.') && parser.getPosition() < parser.getDataSize() - 1) {
+      do {
+        parser.inc();
+        auto label = parser.putLabel();
+        parser.findChar('.');
+        propertyPath.push_back(label.std_str());
+      } while (parser.getPosition() < parser.getDataSize());
+    }
+
+    auto paramName = nameLabel.toString();
+    if (!paramName->empty()) {
+      auto it = params.find(paramName);
+      if (it != params.end()) {
+        auto value = typeResolver->resolveObjectPropertyValue(it->second, propertyPath, cache);
+        if (value.getValueType()->isCollection) {
+          auto dispatcher = static_cast<const oatpp::data::mapping::type::__class::Collection::PolymorphicDispatcher*>(value.getValueType()->polymorphicDispatcher);
+          auto size = dispatcher->getCollectionSize(value);
+          if (size > 0) {
+            for (v_int64 i = 0; i < size; ++i) {
+              if (i > 0) {
+                result->append(",");
+              }
+              result->append("?");
+            }
+          } else {
+            result->append("?");
+          }
+        } else {
+          result->append("?");
+        }
+      } else {
+        result->append("?");
+      }
+    } else {
+      result->append("?");
+    }
+  }
+
+  result->append(extra->templateText->substr(currentPos));
+  return result;
+}
+
+}
+
 namespace oatpp { namespace mysql {
 
 void Executor::ConnectionInvalidator::invalidate(const std::shared_ptr<orm::Connection>& connection) {
@@ -54,9 +120,11 @@ data::share::StringTemplate Executor::parseQueryTemplate(const oatpp::String& na
 
   extra->prepare = prepare;
   extra->templateName = name;
+  extra->templateText = text;
 
   ql_template::TemplateValueProvider valueProvider;
   extra->preparedTemplate = t.format(&valueProvider);
+  extra->placeholderCount = valueProvider.getPlaceholderCount();
 
   return t;
 }
@@ -97,7 +165,10 @@ void Executor::bindParams(MYSQL_STMT* stmt,
 
   auto extra = std::static_pointer_cast<ql_template::Parser::TemplateExtra>(queryTemplate.getExtraData());
 
+  m_serializer->clearBindParams();
+
   size_t count = queryTemplate.getTemplateVariables().size();
+  size_t bindIndex = 0;
   for (size_t i = 0; i < count; ++i) {
     auto& var = queryTemplate.getTemplateVariables()[i];
     
@@ -118,12 +189,36 @@ void Executor::bindParams(MYSQL_STMT* stmt,
           " Parameter name: " + queryParam.name + ", var.name: " + var.name);
       }
 
-      // [serialize] bind parameter according to the resolved type
-      m_serializer->serialize(stmt, i, value);
+      if (value.getValueType()->isCollection) {
+        auto dispatcher = static_cast<const data::mapping::type::__class::Collection::PolymorphicDispatcher*>(value.getValueType()->polymorphicDispatcher);
+        auto size = dispatcher->getCollectionSize(value);
+        if (size > 0) {
+          auto iterator = dispatcher->beginIteration(value);
+          while(!iterator->finished()) {
+            auto item = iterator->get();
+            m_serializer->serialize(stmt, bindIndex++, item);
+            iterator->next();
+          }
+        } else {
+          m_serializer->serialize(stmt, bindIndex++, oatpp::Void());
+        }
+      } else {
+        m_serializer->serialize(stmt, bindIndex++, value);
+      }
     }
   }
 
-  if (mysql_stmt_bind_param(stmt, m_serializer->getBindParams().data())) {
+  auto& bindParams = m_serializer->getBindParams();
+  // OATPP_LOGD("EXECUTOR", "MYSQL_BIND count: %zu", bindParams.size());
+  // for (size_t i = 0; i < bindParams.size(); i++) {
+  //     OATPP_LOGD("EXECUTOR", "  Bind[%zu]: type=%d, buffer=%p, is_null=%d", 
+  //               i, bindParams[i].buffer_type, 
+  //               bindParams[i].buffer,
+  //               bindParams[i].is_null ? *bindParams[i].is_null : -1);
+  // }
+  int rc = mysql_stmt_bind_param(stmt, bindParams.data());
+  // OATPP_LOGD("EXECUTOR", "mysql_stmt_bind_param result: %d", rc);
+  if (rc) {
     throw std::runtime_error("[oatpp::mysql::Executor::bindParams()]: Error. "
       "Can't bind parameters. Error: " + std::string(mysql_stmt_error(stmt)));
   }
@@ -153,13 +248,16 @@ std::shared_ptr<orm::QueryResult> Executor::execute(const StringTemplate& queryT
   }
 
   auto extra = std::static_pointer_cast<ql_template::Parser::TemplateExtra>(queryTemplate.getExtraData());
+  auto preparedTemplate = buildPreparedTemplate(queryTemplate, params, tr);
+  extra->preparedTemplate = preparedTemplate;
+
   if (mysql_stmt_prepare(stmt, extra->preparedTemplate->c_str(), extra->preparedTemplate->size())) {
     throw std::runtime_error("[oatpp::mysql::Executor::execute()]: "
       "Error. Can't prepare MYSQL_STMT. preparedTemplate: " + extra->preparedTemplate +
       " Error: " + std::string(mysql_stmt_error(stmt)));
   }
 
-  bindParams(stmt, queryTemplate, params, typeResolver);
+  bindParams(stmt, queryTemplate, params, tr);
 
   return std::make_shared<mysql::QueryResult>(stmt, connectionHandle, m_resultMapper, tr);
 }

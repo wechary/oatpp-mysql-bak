@@ -26,12 +26,21 @@
 
 namespace oatpp { namespace mysql { namespace ql_template {
 
+TemplateValueProvider::TemplateValueProvider()
+  : m_placeholderCount(0)
+{}
+
 // e.g. select * from t_user where id = :user.id and name = :user.name
 //   -> select * from t_user where id = ? and name = ?
 oatpp::String TemplateValueProvider::getValue(const data::share::StringTemplate::Variable& variable, v_uint32 index) {
   m_buffStream.setCurrentPosition(0);
   m_buffStream << "?";
+  ++m_placeholderCount;
   return m_buffStream.toString();
+}
+
+v_uint32 TemplateValueProvider::getPlaceholderCount() const {
+  return m_placeholderCount;
 }
 
 }}}

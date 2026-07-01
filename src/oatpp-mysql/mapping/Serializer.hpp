@@ -27,6 +27,8 @@ public:
 
   std::vector<MYSQL_BIND>& getBindParams() const;
 
+  void clearBindParams() const;
+
 private:
 
   void setBindParam(MYSQL_BIND& bind, v_uint32 paramIndex) const;
@@ -34,6 +36,8 @@ private:
 private:
 
   static void serializeString(const Serializer* _this, MYSQL_STMT* stmt, v_uint32 paramIndex, const oatpp::Void& polymorph);
+
+  static void serializeNull(const Serializer* _this, MYSQL_STMT* stmt, v_uint32 paramIndex, const oatpp::Void& polymorph);
 
   static void serializeInt8(const Serializer* _this, MYSQL_STMT* stmt, v_uint32 paramIndex, const oatpp::Void& polymorph);
 

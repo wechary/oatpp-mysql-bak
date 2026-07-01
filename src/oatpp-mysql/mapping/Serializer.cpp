@@ -37,6 +37,7 @@ Serializer::Serializer() {
   m_methods.resize(data::mapping::type::ClassId::getClassCount(), nullptr);
 
   setSerializerMethod(data::mapping::type::__class::String::CLASS_ID, &Serializer::serializeString);
+  setSerializerMethod(data::mapping::type::__class::Void::CLASS_ID, &Serializer::serializeNull);
   setSerializerMethod(data::mapping::type::__class::Any::CLASS_ID, nullptr);
 
   setSerializerMethod(data::mapping::type::__class::Int8::CLASS_ID, &Serializer::serializeInt8);
@@ -104,6 +105,16 @@ std::vector<MYSQL_BIND>& Serializer::getBindParams() const {
   return m_bindParams;
 }
 
+void Serializer::clearBindParams() const {
+  for(auto& bindParam : m_bindParams) {
+    if(bindParam.is_null) {
+      free(bindParam.is_null);
+      bindParam.is_null = nullptr;
+    }
+  }
+  m_bindParams.clear();
+}
+
 void Serializer::setBindParam(MYSQL_BIND& bind, v_uint32 paramIndex) const {
   if (paramIndex >= m_bindParams.size()) {
     m_bindParams.resize(paramIndex + 1);
@@ -113,6 +124,15 @@ void Serializer::setBindParam(MYSQL_BIND& bind, v_uint32 paramIndex) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Serializer functions
+
+void Serializer::serializeNull(const Serializer* _this, MYSQL_STMT* stmt, v_uint32 paramIndex, const oatpp::Void& polymorph) {
+  MYSQL_BIND bindParam;
+  std::memset(&bindParam, 0, sizeof(bindParam));
+  bindParam.buffer_type = MYSQL_TYPE_NULL;
+  bindParam.is_null = static_cast<bool*>(malloc(sizeof(bool)));
+  *bindParam.is_null = 1;
+  _this->setBindParam(bindParam, paramIndex);
+}
 
 void Serializer::serializeString(const Serializer* _this, MYSQL_STMT* stmt, v_uint32 paramIndex, const oatpp::Void& polymorph) {
   MYSQL_BIND bindParam;

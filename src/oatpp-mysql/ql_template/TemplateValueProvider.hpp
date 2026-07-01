@@ -36,8 +36,11 @@ namespace oatpp { namespace mysql { namespace ql_template {
 class TemplateValueProvider : public data::share::StringTemplate::ValueProvider {
 private:
   data::stream::BufferOutputStream m_buffStream;
+  v_uint32 m_placeholderCount;
 public:
+  TemplateValueProvider();
   oatpp::String getValue(const data::share::StringTemplate::Variable& variable, v_uint32 index) override;
+  v_uint32 getPlaceholderCount() const;
 };
 
 }}}
