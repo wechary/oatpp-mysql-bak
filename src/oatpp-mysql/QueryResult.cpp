@@ -20,7 +20,7 @@ QueryResult::QueryResult(MYSQL_STMT* stmt,
 
 QueryResult::~QueryResult() {
   mysql_stmt_close(m_stmt);
-  OATPP_LOGD("QueryResult", "QueryResult destroyed");
+  // OATPP_LOGD("QueryResult", "QueryResult destroyed");
 }
 
 provider::ResourceHandle<orm::Connection> QueryResult::getConnection() const {
